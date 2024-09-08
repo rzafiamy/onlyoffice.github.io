@@ -1,0 +1,11 @@
+{
+    "icons": [
+        {
+            "100%": { "normal": "icon.png" },
+            "125%": { "normal": "icon_dark_125.png" },
+            "150%": { "normal": "icon_dark_150.png" },
+            "175%": { "normal": "icon_dark_175.png" },
+            "200%": { "normal": "icon_dark_200.png" }
+        }
+    ]
+}

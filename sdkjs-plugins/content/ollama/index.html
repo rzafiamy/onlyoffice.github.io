@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ollama Plugin</title>
+  <link rel="stylesheet" href="https://onlyoffice.github.io/sdkjs-plugins/v1/plugins.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 400px;
+      margin: 20px auto;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .tab-header {
+      display: flex;
+      background-color: #e0e0e0;
+      cursor: pointer;
+    }
+    .tab-header div {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-right: 1px solid #ccc;
+    }
+    .tab-header div:last-child {
+      border-right: none;
+    }
+    .tab-content {
+      padding: 20px;
+      display: none;
+      background-color: white;
+      border-top: 1px solid #ccc;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    #chatBox {
+      background-color: #fff;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #chatInput {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #settingsForm input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Tab Headers -->
+  <div class="tab-header">
+    <div id="chatTab">Chat</div>
+    <div id="settingsTab">Settings</div>
+    <div id="aboutTab">About</div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="chatContent">
+    <div id="chatBox"></div>
+    <input type="text" id="chatInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <div class="tab-content" id="settingsContent">
+    <form id="settingsForm">
+      <label for="serverUrl">LLM Server URL:</label>
+      <input type="text" id="serverUrl" placeholder="http://localhost:5000/api" value="">
+      <label for="apiKey">API Key:</label>
+      <input type="text" id="apiKey" placeholder="Your API Key" value="">
+      <button type="button" onclick="saveSettings()">Save Settings</button>
+    </form>
+  </div>
+
+  <div class="tab-content" id="aboutContent">
+    <h2>About This Plugin</h2>
+    <p>This plugin allows you to interact with the Ollama LLM server through a simple chat interface. Configure the server in the Settings tab.</p>
+  </div>
+</div>
+
+<script>
+  // Tab switching functionality
+  const chatTab = document.getElementById('chatTab');
+  const settingsTab = document.getElementById('settingsTab');
+  const aboutTab = document.getElementById('aboutTab');
+  
+  const chatContent = document.getElementById('chatContent');
+  const settingsContent = document.getElementById('settingsContent');
+  const aboutContent = document.getElementById('aboutContent');
+
+  chatTab.onclick = function() {
+    chatContent.classList.add('active');
+    settingsContent.classList.remove('active');
+    aboutContent.classList.remove('active');
+  };
+  
+  settingsTab.onclick = function() {
+    settingsContent.classList.add('active');
+    chatContent.classList.remove('active');
+    aboutContent.classList.remove('active');
+  };
+  
+  aboutTab.onclick = function() {
+    aboutContent.classList.add('active');
+    chatContent.classList.remove('active');
+    settingsContent.classList.remove('active');
+  };
+
+  // Settings
+  function saveSettings() {
+    const serverUrl = document.getElementById('serverUrl').value;
+    const apiKey = document.getElementById('apiKey').value;
+    localStorage.setItem('serverUrl', serverUrl);
+    localStorage.setItem('apiKey', apiKey);
+    alert('Settings saved!');
+  }
+
+  // Chat
+  function sendMessage() {
+    const message = document.getElementById('chatInput').value;
+    const serverUrl = localStorage.getItem('serverUrl');
+    const apiKey = localStorage.getItem('apiKey');
+    
+    if (!serverUrl || !apiKey) {
+      alert('Please configure the server settings first.');
+      return;
+    }
+
+    // Display message in chat box
+    const chatBox = document.getElementById('chatBox');
+    const newMessage = document.createElement('div');
+    newMessage.textContent = `You: ${message}`;
+    chatBox.appendChild(newMessage);
+    
+    // Send the message to the LLM server
+    fetch(serverUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({ prompt: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const reply = document.createElement('div');
+      reply.textContent = `LLM: ${data.reply}`;
+      chatBox.appendChild(reply);
+      chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+    
+    document.getElementById('chatInput').value = ''; // Clear input field
+  }
+</script>
+
+</body>
+</html>
